@@ -22,6 +22,13 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'build'
-  }
+    outDir: 'dist', 
+    cssMinify: false, 
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'CSS_SYNTAX_ERROR') return;
+        warn(warning);
+      },
+    },
+  },
 })
