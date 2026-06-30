@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" width="210" height="50">
+    <defs>
+        <linearGradient id="pace_grad_dark" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1E40AF" />
+            <stop offset="50%" stop-color="#7C3AED" />
+            <stop offset="100%" stop-color="#DB2777" />
+        </linearGradient>
+    </defs>
+    
+    <path d="M50 20c-18.8 0-34 15.2-34 34s15.2 34 34 34c7 0 13.5-2 19-5.5L59 72.5c-2.7 1.5-5.7 2.5-9 2.5-12 0-22-10-22-22s10-22 22-22c3.5 0 6.7.8 9.7 2.5L75.4 18c-2.7-6.5-9.5-11-16.4-11zm28.5 15.5l-19 19 19 19c3.5-5.5 5.5-12 5.5-19s-2-13.5-5.5-19z" fill="url(#pace_grad_dark)" />
+    
+    <text x="100" y="66" font-family="Verdana, Geneva, sans-serif" font-weight="900" font-size="48" fill="#FFFFFF" letter-spacing="4">PACE</text>
+    
+    <text x="100" y="85" font-family="Arial, sans-serif" font-weight="400" font-size="14" fill="#94A3B8" letter-spacing="1">Portal Escolar</text>
+</svg>

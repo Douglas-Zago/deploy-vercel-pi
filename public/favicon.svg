@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <defs>
+        <linearGradient id="pace_grad_fav" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1E40AF" />
+            <stop offset="50%" stop-color="#7C3AED" />
+            <stop offset="100%" stop-color="#DB2777" />
+        </linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="120" fill="#0F172A" />
+    <path d="M256 120c-75 0-136 61-136 136s61 136 136 136c28 0 54-8 76-22l-40-40c-11 6-23 10-36 10-48 0-88-40-88-88s40-88 88-88c14 0 27 3 39 10l-63 63h102l-77-77c-11-26-38-44-68-44zm114 62l-76 76 76 76c14-22 22-48 22-76s-8-54-22-76z" fill="url(#pace_grad_fav)" />
+</svg>
