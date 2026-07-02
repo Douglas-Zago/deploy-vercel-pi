@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAuth } from '@/auth'
 import Reveal from '@/components/ui/Reveal'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 import { AgendaService, AgendaEvent, CategoriaAgenda, PrioridadeAgenda } from '@/services/AgendaService'
 
 // ==========================================
@@ -283,11 +284,13 @@ const ModalVisualizarTarefa = React.memo(
         hojeStr,
         onClose,
         onEdit,
+        podeEditar,
     }: {
         item: AgendaEvent
         hojeStr: string
         onClose: () => void
         onEdit: (e: AgendaEvent) => void
+        podeEditar: boolean
     }) => {
         const cfg = configCategorias[item.categoria as CategoriaAgenda]
         const prio = configPrioridades[item.prioridade as PrioridadeAgenda]
@@ -391,6 +394,7 @@ const ModalVisualizarTarefa = React.memo(
                                 >
                                     Fechar
                                 </button>
+                                {podeEditar && (
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -401,6 +405,7 @@ const ModalVisualizarTarefa = React.memo(
                                 >
                                     Editar tarefa
                                 </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -441,6 +446,7 @@ const AgendaItem = React.memo(
         onEdit,
         onDelete,
         onView,
+        podeEditar,
     }: {
         item: AgendaEvent
         hojeStr: string
@@ -449,6 +455,7 @@ const AgendaItem = React.memo(
         onEdit: (evento: AgendaEvent) => void
         onDelete: (id: number) => void
         onView: (evento: AgendaEvent) => void
+        podeEditar: boolean
     }) => {
         const config = configCategorias[item.categoria as CategoriaAgenda]
         const prioConfig = configPrioridades[item.prioridade as PrioridadeAgenda]
@@ -471,8 +478,12 @@ const AgendaItem = React.memo(
 
         return (
             <div
-                draggable
+                draggable={podeEditar}
                 onDragStart={(e) => {
+                    if (!podeEditar) {
+                        e.preventDefault()
+                        return
+                    }
                     const t = e.target as HTMLElement | null
                     if (t && t.closest('[data-agenda-no-drag]')) {
                         e.preventDefault()
@@ -499,6 +510,7 @@ const AgendaItem = React.memo(
                 />
 
                 <div className="flex flex-row items-start gap-3 w-full min-w-0 max-w-full">
+                    {podeEditar && (
                     <button
                         type="button"
                         data-agenda-no-drag
@@ -521,6 +533,7 @@ const AgendaItem = React.memo(
                     >
                         {isLoading ? '⏳' : '✓'}
                     </button>
+                    )}
 
                     <div className="flex-1 flex flex-col min-w-0 max-w-full overflow-hidden gap-3">
                         <div className="min-w-0 max-w-full">
@@ -613,6 +626,8 @@ const AgendaItem = React.memo(
                             >
                                 <span aria-hidden>👁️</span> Ver detalhes
                             </button>
+                            {podeEditar && (
+                            <>
                             <button
                                 type="button"
                                 draggable={false}
@@ -637,6 +652,8 @@ const AgendaItem = React.memo(
                             >
                                 <span aria-hidden>🗑️</span> Excluir
                             </button>
+                            </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -651,6 +668,7 @@ const AgendaItem = React.memo(
 
 export default function Agenda() {
     const { user } = useAuth()
+    const { podeEditar } = usePodeEditar()
     const userId = user?.email || 'direcao'
     const hojeStr = getLocalISODate()
 
@@ -693,21 +711,24 @@ export default function Agenda() {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (
-                e.key.toLowerCase() === 'n' &&
-                !modal.aberto &&
-                document.activeElement?.tagName !== 'INPUT' &&
-                document.activeElement?.tagName !== 'TEXTAREA'
+                !podeEditar ||
+                e.key.toLowerCase() !== 'n' ||
+                modal.aberto ||
+                document.activeElement?.tagName === 'INPUT' ||
+                document.activeElement?.tagName === 'TEXTAREA'
             ) {
-                e.preventDefault()
-                abrirModalNovo()
+                return
             }
+            e.preventDefault()
+            abrirModalNovo()
         }
 
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [modal.aberto])
+    }, [modal.aberto, podeEditar])
 
     const abrirModalNovo = () => {
+        if (!podeEditar) return
         setForm({
             titulo: '',
             descricao: '',
@@ -720,6 +741,7 @@ export default function Agenda() {
     }
 
     const abrirModalEdit = useCallback((evento: AgendaEvent) => {
+        if (!podeEditar) return
         setForm({
             titulo: evento.titulo,
             descricao: evento.descricao,
@@ -729,10 +751,11 @@ export default function Agenda() {
             prioridade: evento.prioridade,
         })
         setModal({ aberto: true, editandoId: evento.id })
-    }, [])
+    }, [podeEditar])
 
     const handleSalvar = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!podeEditar) return
 
         if (modal.editandoId) {
             await editarEvento(modal.editandoId, form)
@@ -806,6 +829,7 @@ export default function Agenda() {
     const handleDrop = (e: React.DragEvent, novaData: string) => {
         e.preventDefault()
         setDragOverDate(null)
+        if (!podeEditar) return
 
         const idStr = e.dataTransfer.getData('eventId')
         if (idStr) {
@@ -830,12 +854,14 @@ export default function Agenda() {
                                 </p>
                             </div>
 
+                            {podeEditar && (
                             <button
                                 onClick={abrirModalNovo}
                                 className="hidden md:flex shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform active:scale-95 items-center gap-2"
                             >
                                 <span>+</span> Novo (N)
                             </button>
+                            )}
                         </div>
 
                         <AgendaStats eventos={eventos} hojeStr={hojeStr} />
@@ -939,6 +965,7 @@ export default function Agenda() {
                                             onEdit={abrirModalEdit}
                                             onDelete={removerEvento}
                                             onView={setVisualizando}
+                                            podeEditar={podeEditar}
                                         />
                                     ))}
                                 </div>
@@ -954,16 +981,19 @@ export default function Agenda() {
                         <p className="text-sm sm:text-base text-gray-500 mb-6">
                             Nenhum evento encontrado para os filtros atuais.
                         </p>
+                        {podeEditar && (
                         <button
                             onClick={abrirModalNovo}
                             className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300 font-bold py-2.5 px-6 rounded-xl hover:bg-indigo-200 dark:hover:bg-indigo-900/30"
                         >
                             Criar Novo Evento
                         </button>
+                        )}
                     </div>
                 )}
             </div>
 
+            {podeEditar && (
             <button
                 onClick={abrirModalNovo}
                 className="md:hidden fixed bottom-5 right-4 z-40 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg rounded-full w-14 h-14 text-2xl font-bold flex items-center justify-center active:scale-95"
@@ -971,11 +1001,13 @@ export default function Agenda() {
             >
                 +
             </button>
+            )}
 
             {visualizando && (
                 <ModalVisualizarTarefa
                     item={visualizando}
                     hojeStr={hojeStr}
+                    podeEditar={podeEditar}
                     onClose={() => setVisualizando(null)}
                     onEdit={(ev) => {
                         setVisualizando(null)

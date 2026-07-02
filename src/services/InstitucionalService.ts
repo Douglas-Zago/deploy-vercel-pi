@@ -1,5 +1,6 @@
 import ApiService from './ApiService';
 import appConfig from '@/configs/app.config';
+import { assertPodeEditar } from '@/utils/somenteLeitura';
 
 // --- INTERFACES ---
 export interface Contato {
@@ -44,6 +45,7 @@ export const InstitucionalService = {
         return ApiService.fetchDataWithAxios<Contato[]>({ url: '/institucional/contatos', method: 'get' });
     },
     createContato: async (novo: Omit<Contato, 'id'>): Promise<Contato> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(600);
             const criado = { ...novo, id: Math.max(0, ...contatosMock.map(c => c.id)) + 1 };
@@ -53,6 +55,7 @@ export const InstitucionalService = {
         return ApiService.fetchDataWithAxios<Contato>({ url: '/institucional/contatos', method: 'post', data: novo });
     },
     deleteContato: async (id: number): Promise<void> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(400);
             contatosMock = contatosMock.filter(c => c.id !== id);
@@ -70,6 +73,7 @@ export const InstitucionalService = {
         return ApiService.fetchDataWithAxios<Informacao[]>({ url: '/institucional/informacoes', method: 'get' });
     },
     createInformacao: async (novo: Omit<Informacao, 'id'>): Promise<Informacao> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(600);
             const criado = { ...novo, id: Math.max(0, ...informacoesMock.map(i => i.id)) + 1 };
@@ -79,6 +83,7 @@ export const InstitucionalService = {
         return ApiService.fetchDataWithAxios<Informacao>({ url: '/institucional/informacoes', method: 'post', data: novo });
     },
     deleteInformacao: async (id: number): Promise<void> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(400);
             informacoesMock = informacoesMock.filter(i => i.id !== id);

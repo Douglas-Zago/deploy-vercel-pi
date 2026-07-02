@@ -6,6 +6,7 @@ import ActionLink from '@/components/shared/ActionLink'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useThemeStore } from '@/store/themeStore'
 import Reveal from '@/components/ui/Reveal'
+import { useNavigate } from 'react-router'
 
 type SignInProps = {
     disableSubmit?: boolean
@@ -14,9 +15,9 @@ type SignInProps = {
 export const SignInBase = ({ disableSubmit }: SignInProps) => {
     const [message, setMessage] = useTimeOutMessage()
     const mode = useThemeStore((state) => state.mode)
-    
-    // Estado para controlar o aviso de "Esqueceu a senha"
-    const [isForgotModalOpen, setIsForgotModalOpen] = useState(false)
+    const navigate = useNavigate()
+
+    const [isSecretariaModalOpen, setIsSecretariaModalOpen] = useState(false)
 
     return (
         <>
@@ -61,7 +62,7 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
                     <div className="mt-2">
                         <button
                             type="button"
-                            onClick={() => setIsForgotModalOpen(true)}
+                            onClick={() => navigate('/forgot-password')}
                             className="font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 underline focus:outline-none bg-transparent border-none p-0 cursor-pointer text-sm"
                         >
                             Esqueceu a senha?
@@ -75,7 +76,7 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
                     <span>Ainda não tem acesso? </span>
                     <button
                         type="button"
-                        onClick={() => setIsForgotModalOpen(true)}
+                        onClick={() => setIsSecretariaModalOpen(true)}
                         className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 font-bold ml-1 focus:outline-none bg-transparent border-none p-0 cursor-pointer"
                     >
                         Procure a Secretaria
@@ -83,8 +84,7 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
                 </div>
             </div>
 
-            {/* MODAL DE ESQUECEU A SENHA / SUPORTE */}
-            {isForgotModalOpen && (
+            {isSecretariaModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <Reveal direction="down" duration={0.3}>
                         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm p-6 border border-gray-100 dark:border-gray-800 text-center relative overflow-hidden">
@@ -96,15 +96,20 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
                             </div>
                             
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                                Precisa de Ajuda?
+                                Ainda não tem acesso?
                             </h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                                Por questões de segurança, a redefinição de senhas e a criação de novos acessos são realizadas exclusivamente pela coordenação. <br/><br/>
-                                <strong>Por favor, dirija-se à Secretaria da escola ou contate um Administrador do sistema.</strong>
+                                A criação de novos acessos é realizada exclusivamente pela gestão
+                                institucional. <br /><br />
+                                <strong>
+                                    Dirija-se à Secretaria da escola ou contate um administrador do
+                                    sistema.
+                                </strong>
                             </p>
-                            
-                            <button 
-                                onClick={() => setIsForgotModalOpen(false)} 
+
+                            <button
+                                type="button"
+                                onClick={() => setIsSecretariaModalOpen(false)} 
                                 className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-sm"
                             >
                                 Entendi

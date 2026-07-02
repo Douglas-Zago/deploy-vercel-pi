@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useAuth } from '@/auth'
 import Reveal from '@/components/ui/Reveal'
-import { isPerfilGestao } from '@/constants/roles.constant'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 import { AchadosService, Achado, CategoriaAchado } from '@/services/AchadosService'
 
 const MAX_TITULO = 100
@@ -24,7 +24,7 @@ const formatarDataAchado = (dataStr: string | null | undefined): string => {
 export default function AchadosEPerdidos() {
     // --- SEGURANÇA E CONTEXTO ---
     const { user } = useAuth()
-    const isGestao = isPerfilGestao(user?.authority)
+    const { isGestao, isGestaoEditavel } = usePodeEditar()
 
     // --- ESTADOS BASE ---
     const [itens, setItems] = useState<Achado[]>([])
@@ -167,9 +167,7 @@ export default function AchadosEPerdidos() {
         return filtrados
     }, [itens, filtroStatus, termoBusca, isGestao])
 
-    const podeMarcarComoDevolvido = (item: Achado) =>
-        !item.devolvido &&
-        (isGestao || (item.autorId != null && String(item.autorId) === user?.userId))
+  const podeMarcarComoDevolvido = (item: Achado) => !item.devolvido && isGestaoEditavel
 
     // --- VALIDAÇÕES DE FORMULÁRIO ---
     const isFormValido =
@@ -199,7 +197,7 @@ export default function AchadosEPerdidos() {
                         <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg">Perdeu algo? Verifique se foi entregue na secretaria.</p>
                     </div>
 
-                    {isGestao && (
+                    {isGestaoEditavel && (
                         <button 
                             onClick={() => setIsCriando(true)}
                             className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-xl transition-transform active:scale-95 shadow-md flex items-center justify-center gap-2 text-lg"
@@ -333,7 +331,7 @@ export default function AchadosEPerdidos() {
                                                 É meu! Como retirar?
                                             </button>
                                         ) : null}
-                                        {isGestao ? (
+                                        {isGestaoEditavel ? (
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeletar(item.id)}
@@ -362,7 +360,7 @@ export default function AchadosEPerdidos() {
             {/* ================================================================= */}
             {/* MODAL ADMIN: REGISTRAR NOVO ITEM COM PROTEÇÃO LGPD                */}
             {/* ================================================================= */}
-            {isCriando && isGestao && (
+            {isCriando && isGestaoEditavel && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/70 backdrop-blur-sm transition-opacity overflow-y-auto">
                     <Reveal direction="up" duration={300} className="w-full max-w-2xl my-8">
                         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
@@ -495,7 +493,7 @@ export default function AchadosEPerdidos() {
             )}
 
             {/* MODAL ADMIN: MARCAR DEVOLVIDO */}
-            {isDevolvendo && itemParaDevolver && (isGestao || String(itemParaDevolver.autorId) === user?.userId) && (
+            {isDevolvendo && itemParaDevolver && isGestaoEditavel && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/70 backdrop-blur-sm transition-opacity">
                     <Reveal direction="up" duration={200} className="w-full max-w-md">
                         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 p-6 md:p-8">

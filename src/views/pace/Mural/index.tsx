@@ -12,7 +12,7 @@ import {
     type PublicoAlvo,
     type FiltroPublicoAlvoCabecalho,
 } from '@/constants/publicoAlvo'
-import { isPerfilGestao } from '@/constants/roles.constant'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 
 // --- CONSTANTES DE LIMITES (Padrão Profissional) ---
 const MAX_TITULO = 140
@@ -45,7 +45,7 @@ const Mural = () => {
     // Pegando o usuário logado de forma segura sem quebrar o Contexto
     const { user } = useAuth()
     // O array de authorities pode vir opcional, então usamos a interrogação (?) para evitar quebras
-    const isGestao = isPerfilGestao(user?.authority)
+    const { isGestaoEditavel } = usePodeEditar()
 
     // --- ESTADOS DO COMPONENTE ---
     const [comunicados, setComunicados] = useState<Comunicado[]>([])
@@ -211,7 +211,7 @@ const Mural = () => {
                                 ))}
                             </select>
 
-                            {isGestao && (
+                            {isGestaoEditavel && (
                                 <button 
                                     type="button"
                                     onClick={() => {

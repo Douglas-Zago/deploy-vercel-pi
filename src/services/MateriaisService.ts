@@ -1,5 +1,6 @@
 import ApiService from './ApiService'
 import appConfig from '@/configs/app.config'
+import { assertPodeEditar } from '@/utils/somenteLeitura'
 import type { Material, MaterialRequest } from '@/@types/portal'
 
 export type { Material } from '@/@types/portal'
@@ -62,7 +63,7 @@ export let materiaisMock: Material[] = [
         acessos: 0,
         autorNome: 'Prof. Douglas',
         autorId: null,
-        publicoAlvo: '9º Ano A',
+        publicoAlvo: '9º Ano A - Ensino Fundamental',
         ativo: false,
     },
     {
@@ -77,7 +78,7 @@ export let materiaisMock: Material[] = [
         acessos: 12,
         autorNome: 'Prof. Ana',
         autorId: null,
-        publicoAlvo: 'Turma Única',
+        publicoAlvo: 'Turma Única - Educação Especial',
         ativo: true,
     },
 ]
@@ -102,6 +103,7 @@ export const MateriaisService = {
             dataCriacao?: string
         },
     ): Promise<Material> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await delay(800)
             const materialCriado: Material = {
@@ -135,6 +137,7 @@ export const MateriaisService = {
     },
 
     aprovar: async (id: number): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await delay(400)
             const index = materiaisMock.findIndex((m) => m.id === id)
@@ -148,6 +151,7 @@ export const MateriaisService = {
     },
 
     deletar: async (id: number): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await delay(400)
             materiaisMock = materiaisMock.filter((m) => m.id !== id)

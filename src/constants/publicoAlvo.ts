@@ -1,12 +1,11 @@
 import type { User } from '@/@types/auth'
 import { isPerfilGestao } from '@/constants/roles.constant'
+import { TURMAS_NOMES } from '@/mock/data/turmasMockData'
 
 /** Opções de segmentação de conteúdo (Mural, Calendário, etc.) */
 export const PUBLICO_ALVO_OPCOES = [
     'Colégio Todo',
-    '9º Ano A',
-    '3º Ano B',
-    'Turma Única',
+    ...TURMAS_NOMES,
     'Professores',
 ] as const
 

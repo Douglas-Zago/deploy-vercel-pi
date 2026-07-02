@@ -1,7 +1,7 @@
 import { mock } from '../MockAdapter'
 import {
     appendMockUser,
-    findMockUserByEmail,
+    findMockUserByLogin,
     getSignInUserData,
     initialPasswordFromCpf,
     type MockSignInUser,
@@ -18,6 +18,7 @@ const toAuthUserResponse = (
     authority: user.authority,
     active: user.active,
     primeiroAcesso: user.primeiroAcesso,
+    somenteLeitura: user.somenteLeitura,
     avatar: user.avatar,
     turma: user.turma,
 })
@@ -32,10 +33,10 @@ mock.onPost(`/sign-in`).reply((config) => {
     const { password } = data
 
     if (!email || !password) {
-        return [400, { message: 'Preencha o e-mail e a senha.' }]
+        return [400, { message: 'Preencha o usuário/e-mail e a senha.' }]
     }
 
-    const user = findMockUserByEmail(email)
+    const user = findMockUserByLogin(email)
 
     if (user && user.password === password) {
         return new Promise(function (resolve) {
@@ -119,12 +120,19 @@ mock.onPost(`/auth/esqueci-senha`).reply((config) => {
         return [400, { message: 'Informe seu e-mail.' }]
     }
 
-    const usuario = findMockUserByEmail(email)
-    if (!usuario) {
-        return [404, { message: 'E-mail não encontrado.' }]
-    }
+    const userExists = Boolean(findMockUserByLogin(email))
 
-    return [200, true]
+    return new Promise(function (resolve) {
+        setTimeout(function () {
+            if (userExists) {
+                // Em produção: enviaria e-mail com link de redefinição.
+                // Mock: apenas simula o envio silenciosamente.
+            }
+
+            // Anti-enumeração: mesma resposta para e-mail existente ou inexistente.
+            resolve([200, true])
+        }, 800)
+    })
 })
 
 mock.onPost(`/auth/redefinir-senha-obrigatoria`).reply(() => {

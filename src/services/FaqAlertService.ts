@@ -1,3 +1,5 @@
+import { assertPodeEditar } from '@/utils/somenteLeitura'
+
 export type FaqCategoriaBadge = 'indigo' | 'emerald' | 'amber' | 'sky' | 'rose' | 'violet'
 
 export interface FaqItem {
@@ -64,7 +66,7 @@ const FAQ_PADRAO: FaqItem[] = [
         badge: 'violet',
         pergunta: 'Como recupero minha senha de acesso ao portal?',
         resposta:
-            'Na tela de login, use "Esqueci minha senha" ou procure a Secretaria para redefinição presencial. Por segurança, a senha provisória deve ser alterada no primeiro acesso.',
+            'Na tela de login, clique em "Esqueceu a senha?" e informe seu e-mail institucional. Se o endereço estiver cadastrado, você receberá um link para redefinir a senha. Por segurança, o sistema não informa se o e-mail existe ou não. Para criação de novos acessos, procure a Secretaria.',
     },
     {
         id: 'faq-6',
@@ -115,6 +117,7 @@ export const FaqAlertService = {
     },
 
     addFaqItem(pergunta: string, resposta: string): FaqItem {
+        assertPodeEditar()
         const itens = inicializarFaqSeNecessario()
         const novo: FaqItem = {
             id: gerarId('faq'),
@@ -131,6 +134,7 @@ export const FaqAlertService = {
         id: string,
         dados: Pick<FaqItem, 'pergunta' | 'resposta'>,
     ): FaqItem | null {
+        assertPodeEditar()
         const itens = inicializarFaqSeNecessario()
         const idx = itens.findIndex((i) => i.id === id)
         if (idx === -1) return null
@@ -148,6 +152,7 @@ export const FaqAlertService = {
     },
 
     deleteFaqItem(id: string): boolean {
+        assertPodeEditar()
         const itens = inicializarFaqSeNecessario()
         const filtrados = itens.filter((i) => i.id !== id)
         if (filtrados.length === itens.length) return false
@@ -167,6 +172,7 @@ export const FaqAlertService = {
     },
 
     ativarAlerta(titulo: string, mensagem: string): AlertaGlobal {
+        assertPodeEditar()
         const alerta: AlertaGlobal = {
             id: gerarId('alerta'),
             titulo: titulo.trim(),
@@ -179,6 +185,7 @@ export const FaqAlertService = {
     },
 
     desativarAlerta(): void {
+        assertPodeEditar()
         const atual = lerJson<AlertaGlobal>(STORAGE_ALERTA)
         if (!atual) return
         salvarJson(STORAGE_ALERTA, { ...atual, ativo: false })

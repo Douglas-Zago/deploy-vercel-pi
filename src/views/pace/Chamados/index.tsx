@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/auth' // <-- Integração real de segurança
 import Reveal from '@/components/ui/Reveal'
-import { isPerfilGestao } from '@/constants/roles.constant'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 import { ChamadosService, Chamado } from '@/services/ChamadosService'
 
 const MAX_CHARS = 200
@@ -20,7 +20,7 @@ const formatarDataChamado = (dataStr: string | null | undefined): string => {
 const Chamados = () => {
     // --- SEGURANÇA E CONTEXTO ---
     const { user } = useAuth()
-    const isGestao = isPerfilGestao(user?.authority)
+    const { isGestao, isGestaoEditavel } = usePodeEditar()
     const isProfessor = user?.authority?.includes('professor')
     
     // O nome do usuário logado que será usado como autor nos chamados novos e na filtragem
@@ -322,7 +322,7 @@ const Chamados = () => {
                             </div>
                             
                             {/* Apenas ADMIN pode alterar status */}
-                            {isGestao && (
+                            {isGestaoEditavel && (
                                 <div className="px-6 py-5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex flex-col md:flex-row justify-center md:justify-end items-center gap-4">
                                     <div className="w-full md:w-auto flex items-center gap-3">
                                         <label className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Alterar Status:</label>

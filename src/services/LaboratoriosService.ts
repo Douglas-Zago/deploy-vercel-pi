@@ -1,5 +1,6 @@
 import ApiService from './ApiService'
 import appConfig from '@/configs/app.config'
+import { assertPodeEditar } from '@/utils/somenteLeitura'
 import type { Laboratorio, LaboratorioRequest, ReservaLab, ReservaLabRequest } from '@/@types/portal'
 
 export type { Laboratorio, ReservaLab } from '@/@types/portal'
@@ -87,6 +88,7 @@ export const LaboratoriosService = {
     },
 
     salvarLaboratorio: async (lab: LaboratorioRequest & { id?: number }): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             if (lab.id) {
@@ -123,6 +125,7 @@ export const LaboratoriosService = {
     },
 
     deletarLaboratorio: async (id: number): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             mockLaboratorios = mockLaboratorios.filter((l) => l.id !== id)
@@ -148,6 +151,7 @@ export const LaboratoriosService = {
             laboratorioNome?: string | null
         },
     ): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             mockReservas.push({
@@ -171,6 +175,7 @@ export const LaboratoriosService = {
     },
 
     aprovarReserva: async (id: number): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             mockReservas = mockReservas.map((r) =>
@@ -182,6 +187,7 @@ export const LaboratoriosService = {
     },
 
     reverterReserva: async (id: number): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             mockReservas = mockReservas.map((r) =>
@@ -193,6 +199,7 @@ export const LaboratoriosService = {
     },
 
     deletarReserva: async (id: number): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             mockReservas = mockReservas.filter((r) => r.id !== id)

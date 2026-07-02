@@ -5,6 +5,7 @@ import {
     type AlertaGlobal,
     type FaqItem,
 } from '@/services/FaqAlertService'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 
 type AbaGestao = 'FAQ' | 'ALERTA'
 
@@ -14,6 +15,7 @@ const MAX_TITULO_ALERTA = 120
 const MAX_MENSAGEM_ALERTA = 1000
 
 const GestaoFaqAlertas = () => {
+    const { podeEditar } = usePodeEditar()
     const [abaAtiva, setAbaAtiva] = useState<AbaGestao>('FAQ')
     const [faqItens, setFaqItens] = useState<FaqItem[]>([])
     const [alertaAtual, setAlertaAtual] = useState<AlertaGlobal | null>(null)
@@ -131,7 +133,7 @@ const GestaoFaqAlertas = () => {
                         </button>
                     </div>
 
-                    {abaAtiva === 'FAQ' && (
+                    {abaAtiva === 'FAQ' && podeEditar && (
                         <button
                             type="button"
                             onClick={abrirNovoFaq}
@@ -162,10 +164,12 @@ const GestaoFaqAlertas = () => {
                                     <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4 line-clamp-3">
                                         {item.resposta}
                                     </p>
+                                    {podeEditar && (
                                     <AcoesFaqItem
                                         onEditar={() => abrirEditarFaq(item)}
                                         onExcluir={() => handleExcluirFaq(item.id)}
                                     />
+                                    )}
                                 </div>
                             ))
                         )}
@@ -174,6 +178,7 @@ const GestaoFaqAlertas = () => {
             ) : (
                 <Reveal direction="up" delay={150}>
                     <div className="grid lg:grid-cols-2 gap-6">
+                        {podeEditar ? (
                         <form
                             onSubmit={handleAtivarAlerta}
                             className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-5"
@@ -224,6 +229,16 @@ const GestaoFaqAlertas = () => {
                                 {salvando ? 'Ativando...' : 'Ativar Alerta Urgente'}
                             </button>
                         </form>
+                        ) : (
+                        <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                Publicar alerta urgente
+                            </h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Modo apresentação: a publicação de alertas está desativada nesta conta.
+                            </p>
+                        </div>
+                        )}
 
                         <div className="bg-gray-50 dark:bg-gray-900/50 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-4">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -243,6 +258,7 @@ const GestaoFaqAlertas = () => {
                                             {alertaAtual.mensagem}
                                         </p>
                                     </div>
+                                    {podeEditar && (
                                     <button
                                         type="button"
                                         onClick={handleDesativarAlerta}
@@ -250,6 +266,7 @@ const GestaoFaqAlertas = () => {
                                     >
                                         Desativar Alerta
                                     </button>
+                                    )}
                                 </>
                             ) : (
                                 <p className="text-gray-500 dark:text-gray-400 text-sm">

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { useAuth } from '@/auth'
 import Reveal from '@/components/ui/Reveal'
-import { isPerfilGestao } from '@/constants/roles.constant'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 import { InstitucionalService, Contato, Informacao } from '@/services/InstitucionalService'
 
 type AbaType = 'CONTATOS' | 'INFORMACOES'
@@ -14,8 +13,7 @@ const MAX_DESCRICAO_INFO = 2000
 
 const InformacoesDaEscola = () => {
     // --- SEGURANÇA E CONTEXTO ---
-    const { user } = useAuth()
-    const isGestao = isPerfilGestao(user?.authority)
+    const { isGestaoEditavel } = usePodeEditar()
 
     // --- ESTADOS BASE ---
     const [abaAtiva, setAbaAtiva] = useState<AbaType>('CONTATOS')
@@ -124,7 +122,7 @@ const InformacoesDaEscola = () => {
                     </div>
 
                     {/* Botão de Adicionar dinâmico baseado na aba (Apenas Admin) */}
-                    {isGestao && (
+                    {isGestaoEditavel && (
                         <button 
                             onClick={() => abaAtiva === 'CONTATOS' ? setModalContatoAberto(true) : setModalInfoAberto(true)}
                             className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-transform active:scale-95 shadow-md flex items-center gap-2 whitespace-nowrap"
@@ -180,7 +178,7 @@ const InformacoesDaEscola = () => {
                         contatosFiltrados.map((item, index) => (
                             <Reveal key={item.id} direction="up" delay={index * 50}>
                                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-lg transition-shadow relative group">
-                                    {isGestao && (
+                                    {isGestaoEditavel && (
                                         <button onClick={() => handleDeletarContato(item.id)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Excluir">
                                             🗑️
                                         </button>
@@ -201,7 +199,7 @@ const InformacoesDaEscola = () => {
                         infosFiltradas.map((item, index) => (
                             <Reveal key={item.id} direction="up" delay={index * 50}>
                                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-lg transition-shadow relative group">
-                                    {isGestao && (
+                                    {isGestaoEditavel && (
                                         <button onClick={() => handleDeletarInformacao(item.id)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Excluir">
                                             🗑️
                                         </button>
@@ -219,7 +217,7 @@ const InformacoesDaEscola = () => {
             {/* ============================================== */}
             {/* MODAIS DE CRIAÇÃO (SÓ RENDERIZAM PARA ADMIN)   */}
             {/* ============================================== */}
-            {isGestao && modalContatoAberto && (
+            {isGestaoEditavel && modalContatoAberto && (
                 <Modal 
                     titulo="Novo Contato" 
                     onClose={() => setModalContatoAberto(false)} 
@@ -233,7 +231,7 @@ const InformacoesDaEscola = () => {
                 </Modal>
             )}
 
-            {isGestao && modalInfoAberto && (
+            {isGestaoEditavel && modalInfoAberto && (
                 <Modal 
                     titulo="Nova Informação Útil" 
                     onClose={() => setModalInfoAberto(false)} 

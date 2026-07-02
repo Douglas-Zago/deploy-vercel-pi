@@ -1,5 +1,6 @@
 import ApiService from './ApiService'
 import type { PublicoAlvo } from '@/constants/publicoAlvo'
+import { assertPodeEditar } from '@/utils/somenteLeitura'
 
 export type CategoriaInstitucional = 'Provas' | 'Feriados' | 'Eventos'
 
@@ -35,6 +36,7 @@ export const CalendarioService = {
     },
 
     create: async (evento: EventoCalendarioRequest): Promise<EventoCalendario> => {
+        assertPodeEditar()
         const criado = await ApiService.fetchDataWithAxios<Record<string, unknown>>({
             url: '/calendario',
             method: 'post',

@@ -9,7 +9,7 @@ import {
     type PublicoAlvo,
     type FiltroPublicoAlvoCabecalho,
 } from '@/constants/publicoAlvo'
-import { isPerfilGestao } from '@/constants/roles.constant'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 import { MateriaisService, Material } from '@/services/MateriaisService'
 
 const MAX_TITULO = 140
@@ -38,9 +38,9 @@ const estadoInicialNovoMaterial = () => ({
 const Materiais = () => {
     // --- SEGURANÇA E CONTEXTO ---
     const { user } = useAuth()
-    const isGestao = isPerfilGestao(user?.authority)
+    const { isGestao, isGestaoEditavel, podeOperar } = usePodeEditar()
     const isProfessor = user?.authority?.includes('professor')
-    const podeAdicionar = isGestao || isProfessor
+    const podeAdicionar = podeOperar
     const nomeAutor = user?.userName || 'Usuário Desconhecido'
 
     // --- ESTADOS BASE ---
@@ -314,7 +314,7 @@ const Materiais = () => {
                                         >
                                             {externo ? '🔗 Acessar Link' : '⬇️ Acessar Material'}
                                         </button>
-                                        {isGestao && (
+                                        {isGestaoEditavel && (
                                             <button onClick={() => handleDeletar(item.id)} className="px-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors border border-red-100 font-bold" title="Remover Material">
                                                 🗑️
                                             </button>

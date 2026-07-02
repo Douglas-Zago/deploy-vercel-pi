@@ -2,6 +2,7 @@ import ApiService from './ApiService'
 import appConfig from '@/configs/app.config'
 import { appendMockUser, initialPasswordFromCpf } from '@/mock/data/authData'
 import { ALUNO, COORDENACAO, DIRECAO, PROFESSOR } from '@/constants/roles.constant'
+import { assertPodeEditar } from '@/utils/somenteLeitura'
 
 export type CargoUsuario = 'ALUNO' | 'PROFESSOR' | 'DIRECAO' | 'COORDENACAO'
 
@@ -31,7 +32,7 @@ export type UsuarioDTO = Omit<Usuario, 'id' | 'dataCriacao'>
 
 export type SalvarUsuarioResponse = {
   usuario: Usuario
-  senhaGerada?: string
+  criado?: boolean
 }
 
 const USE_MOCK = appConfig.enableMock
@@ -86,7 +87,7 @@ let mockUsuarios: Usuario[] = [
     cpf: '11122233344',
     email: 'maria.aluna@pace.edu.br',
     cargo: 'ALUNO',
-    turma: '9º Ano A',
+    turma: '9º Ano A - Ensino Fundamental',
     ativo: false,
     dataCriacao: new Date().toISOString(),
   },
@@ -97,7 +98,7 @@ let mockUsuarios: Usuario[] = [
     cpf: '22233344455',
     email: 'pedro.aluno@pace.edu.br',
     cargo: 'ALUNO',
-    turma: '3º Ano B',
+    turma: '3º Ano B - Ensino Médio',
     ativo: true,
     dataCriacao: new Date().toISOString(),
   },
@@ -108,7 +109,7 @@ let mockUsuarios: Usuario[] = [
     cpf: '33344455566',
     email: 'ana.aluna@pace.edu.br',
     cargo: 'ALUNO',
-    turma: 'Turma Única',
+    turma: 'Turma Única - Educação Especial',
     ativo: true,
     dataCriacao: new Date().toISOString(),
   },
@@ -143,6 +144,7 @@ export const UsuariosService = {
   },
 
   salvarUsuario: async (data: UsuarioDTO, id?: string): Promise<SalvarUsuarioResponse> => {
+    assertPodeEditar()
     if (USE_MOCK) {
       await simulateDelay(800)
       if (id) {
@@ -152,15 +154,15 @@ export const UsuariosService = {
         return { usuario: mockUsuarios[index] }
       }
 
-      const senhaGerada = initialPasswordFromCpf(data.cpf)
+      const senhaPadrao = initialPasswordFromCpf(data.cpf)
       const novoUsuario: Usuario = {
         ...data,
         id: Math.random().toString(36).substring(2, 9),
         dataCriacao: new Date().toISOString(),
       }
       mockUsuarios = [novoUsuario, ...mockUsuarios]
-      syncMockAuthUser(novoUsuario, senhaGerada, true)
-      return { usuario: novoUsuario, senhaGerada }
+      syncMockAuthUser(novoUsuario, senhaPadrao, true)
+      return { usuario: novoUsuario, criado: true }
     }
 
     const usuario = await ApiService.fetchDataWithAxios<Usuario, UsuarioDTO>({
@@ -172,6 +174,7 @@ export const UsuariosService = {
   },
 
   alternarStatus: async (id: string, ativo: boolean): Promise<void> => {
+    assertPodeEditar()
     if (USE_MOCK) {
       await simulateDelay(500)
       const index = mockUsuarios.findIndex((u) => u.id === id)
@@ -187,20 +190,20 @@ export const UsuariosService = {
     })
   },
 
-  resetarSenha: async (id: string): Promise<string> => {
+  resetarSenha: async (id: string): Promise<void> => {
+    assertPodeEditar()
     if (USE_MOCK) {
       await simulateDelay(600)
       const usuario = mockUsuarios.find((u) => u.id === id)
       if (!usuario) throw new Error('Usuário não encontrado')
       const senha = initialPasswordFromCpf(usuario.cpf)
       syncMockAuthUser(usuario, senha, true)
-      return senha
+      return
     }
-    const response = await ApiService.fetchDataWithAxios<{ senha: string }, void>({
+    await ApiService.fetchDataWithAxios<void, void>({
       url: `/usuarios/${id}/resetar-senha`,
       method: 'POST',
     })
-    return response.senha
   },
 
   getPendingPasswordResets: async (): Promise<PasswordResetRequest[]> => {
@@ -215,6 +218,7 @@ export const UsuariosService = {
   },
 
   finalizePasswordReset: async (id: string): Promise<void> => {
+    assertPodeEditar()
     if (USE_MOCK) {
       await simulateDelay(300)
       return
@@ -226,6 +230,7 @@ export const UsuariosService = {
   },
 
   importarCSV: async (file: File): Promise<{ sucesso: number; erros: number }> => {
+    assertPodeEditar()
     if (USE_MOCK) {
       return new Promise((resolve) => {
         const reader = new FileReader()
@@ -242,7 +247,7 @@ export const UsuariosService = {
             if (nome && matricula && email && cpf) {
               const cargoUpper = (cargoRaw?.toUpperCase() || 'ALUNO') as CargoUsuario
               const cargo = cargosValidos.includes(cargoUpper) ? cargoUpper : 'ALUNO'
-              const turma = cargo === 'ALUNO' ? turmaRaw || 'Turma Única' : turmaRaw || 'Todas'
+              const turma = cargo === 'ALUNO' ? turmaRaw || 'Turma Única - Educação Especial' : turmaRaw || 'Todas'
               const senhaGerada = initialPasswordFromCpf(cpf)
 
               const novoUsuario: Usuario = {

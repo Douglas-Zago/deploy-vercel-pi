@@ -1,5 +1,6 @@
 import ApiService from './ApiService'
 import appConfig from '@/configs/app.config'
+import { assertPodeEditar } from '@/utils/somenteLeitura'
 import type { Achado, AchadoRequest } from '@/@types/portal'
 
 export type { Achado } from '@/@types/portal'
@@ -74,6 +75,7 @@ export const AchadosService = {
         data: AchadoRequest & { autorId?: number | null; autorNome?: string | null },
         file?: File | null,
     ): Promise<Achado> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay(800)
             let provisoryImageUrl: string | null = null
@@ -114,6 +116,7 @@ export const AchadosService = {
     },
 
     marcarComoDevolvido: async (id: number, entreguePara: string): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay(500)
             const index = mockAchados.findIndex((a) => a.id === id)
@@ -132,6 +135,7 @@ export const AchadosService = {
     },
 
     deletar: async (id: number): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay(400)
             mockAchados = mockAchados.filter((a) => a.id !== id)

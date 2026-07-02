@@ -1,5 +1,6 @@
 import ApiService from './ApiService'
 import appConfig from '@/configs/app.config'
+import { assertPodeEditar } from '@/utils/somenteLeitura'
 import type { Comunicado, ComunicadoRequest } from '@/@types/portal'
 
 export type { Comunicado } from '@/@types/portal'
@@ -34,7 +35,7 @@ export let comunicadosMock: Comunicado[] = [
             'Alunos interessados em participar da Feira de Ciências devem procurar seus professores orientadores até o final do mês. Os projetos vencedores receberão bolsas de incentivo à pesquisa científica.',
         autor: 'Coordenação de Ciências',
         dataPublicacao: '2026-04-02T18:45:00.000Z',
-        publicoAlvo: '9º Ano A',
+        publicoAlvo: '9º Ano A - Ensino Fundamental',
         ativo: true,
         autorId: null,
     },
@@ -58,6 +59,7 @@ export const ComunicadosService = {
     },
 
     create: async (novoComunicado: ComunicadoRequest & { autor?: string; dataPublicacao?: string }): Promise<Comunicado> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await delay(800)
             const comunicadoCriado: Comunicado = {

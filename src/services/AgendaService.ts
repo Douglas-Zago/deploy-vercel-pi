@@ -1,5 +1,6 @@
 import ApiService from './ApiService';
 import appConfig from '@/configs/app.config';
+import { assertPodeEditar } from '@/utils/somenteLeitura';
 
 export type CategoriaAgenda = 'Provas/Trabalhos' | 'Aulas/Estudos' | 'Reunião' | 'Pessoal';
 export type PrioridadeAgenda = 'Alta' | 'Média' | 'Baixa';
@@ -74,6 +75,7 @@ export const AgendaService = {
     },
 
     create: async (novoEvento: Omit<AgendaEvent, 'id' | 'concluido'>): Promise<AgendaEvent> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(600); // Simulando delay de rede
             const criado: AgendaEvent = { ...novoEvento, id: Date.now(), concluido: false };
@@ -84,6 +86,7 @@ export const AgendaService = {
     },
 
     update: async (id: number, dadosAtualizados: Partial<AgendaEvent>): Promise<AgendaEvent> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(400);
             const index = agendaMock.findIndex(e => e.id === id);
@@ -95,6 +98,7 @@ export const AgendaService = {
     },
 
     toggleStatus: async (id: number): Promise<void> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(300);
             const index = agendaMock.findIndex(e => e.id === id);
@@ -105,6 +109,7 @@ export const AgendaService = {
     },
 
     delete: async (id: number): Promise<void> => {
+        assertPodeEditar();
         if (USE_MOCK) {
             await delay(400);
             agendaMock = agendaMock.filter(e => e.id !== id);

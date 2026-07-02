@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import Logo from '@/components/template/Logo'
 import Alert from '@/components/ui/Alert'
-import Button from '@/components/ui/Button'
 import ActionLink from '@/components/shared/ActionLink'
 import ForgotPasswordForm from './components/ForgotPasswordForm'
-import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
-import { useNavigate } from 'react-router'
+import Button from '@/components/ui/Button'
+import Reveal from '@/components/ui/Reveal'
+import { useThemeStore } from '@/store/themeStore'
 
 type ForgotPasswordProps = {
     signInUrl?: string
@@ -13,64 +15,67 @@ type ForgotPasswordProps = {
 export const ForgotPasswordBase = ({
     signInUrl = '/sign-in',
 }: ForgotPasswordProps) => {
-    const [emailSent, setEmailSent] = useState(false)
-    const [message, setMessage] = useTimeOutMessage()
-
+    const [isSubmitted, setIsSubmitted] = useState(false)
+    const mode = useThemeStore((state) => state.mode)
     const navigate = useNavigate()
 
-    const handleContinue = () => {
-        navigate(signInUrl)
-    }
-
     return (
-        <div>
-            <div className="mb-6">
-                {emailSent ? (
-                    <>
-                        <h3 className="mb-2">Recuperação de senha iniciada</h3>
-                        <p className="font-semibold heading-text">
-                            Solicitamos a redefinição de senha por matrícula.
-                        </p>
-                    </>
-                ) : (
-                    <>
-                        <h3 className="mb-2">Esqueceu a senha?</h3>
-                        <p className="font-semibold heading-text">
-                            Informe sua matrícula para acionar o reset de senha.
-                        </p>
-                    </>
-                )}
+        <>
+            <div className="mb-14 mt-6 flex justify-center">
+                <Logo
+                    type="streamline"
+                    mode={mode}
+                    imgClass="mx-auto"
+                    logoWidth={100}
+                    style={{ transform: 'scale(2.2)' }}
+                />
             </div>
-            {message && (
-                <Alert showIcon className="mb-4" type="danger">
-                    <span className="break-all">{message}</span>
-                </Alert>
-            )}
-            <ForgotPasswordForm
-                emailSent={emailSent}
-                setMessage={setMessage}
-                setEmailSent={setEmailSent}
-            >
-                <Button
-                    block
-                    variant="solid"
-                    type="button"
-                    onClick={handleContinue}
-                >
-                    Continue
-                </Button>
-            </ForgotPasswordForm>
-            <div className="mt-4 text-center">
-                <span>Back to </span>
+
+            <div className="mb-8 flex justify-between items-start">
+                <div>
+                    <h2 className="mb-2 text-3xl font-extrabold text-gray-900 dark:text-white">
+                        Esqueceu a senha?
+                    </h2>
+                    <p className="font-semibold text-gray-600 dark:text-gray-400">
+                        Informe seu e-mail institucional para solicitar a redefinição.
+                    </p>
+                </div>
+
                 <ActionLink
                     to={signInUrl}
-                    className="heading-text font-bold"
+                    className="text-sm text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 whitespace-nowrap ml-4 flex items-center gap-2 font-bold px-4 py-2 rounded-full bg-gray-50 hover:bg-indigo-50 dark:bg-gray-800/50 dark:hover:bg-indigo-900/30 transition-all border border-gray-100 hover:border-indigo-200 dark:border-gray-700 dark:hover:border-indigo-800 shadow-sm"
                     themeColor={false}
+                    title="Voltar para o login"
                 >
-                    Sign in
+                    <span className="text-xl leading-none">&larr;</span> Login
                 </ActionLink>
             </div>
-        </div>
+
+            {isSubmitted && (
+                <Reveal direction="up" duration={0.3}>
+                    <Alert showIcon className="mb-4 text-sm" type="success">
+                        Se o e-mail estiver cadastrado, enviaremos um link de redefinição.
+                    </Alert>
+                </Reveal>
+            )}
+
+            <Reveal direction="up" duration={0.4}>
+                <ForgotPasswordForm
+                    isSubmitted={isSubmitted}
+                    setIsSubmitted={setIsSubmitted}
+                />
+            </Reveal>
+
+            <Button
+                block
+                variant="plain"
+                type="button"
+                className="mt-4"
+                onClick={() => navigate(signInUrl)}
+            >
+                Voltar ao login
+            </Button>
+        </>
     )
 }
 

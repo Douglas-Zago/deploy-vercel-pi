@@ -15,6 +15,8 @@ export type AuthUserResponse = {
     authority: string[]
     active: boolean
     primeiroAcesso: boolean
+    /** Conta de demonstração: visualiza tudo, sem permissão de alteração */
+    somenteLeitura?: boolean
 }
 
 /** POST /auth/sign-in — com.pifaculdade.dto.AuthResponse */
@@ -59,6 +61,7 @@ export type User = {
     authority?: string[]
     active?: boolean
     primeiroAcesso?: boolean
+    somenteLeitura?: boolean
     avatar?: string | null
     turma?: string | null
 }

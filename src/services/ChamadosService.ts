@@ -1,5 +1,6 @@
 import ApiService from './ApiService'
 import appConfig from '@/configs/app.config'
+import { assertPodeEditar } from '@/utils/somenteLeitura'
 import type { Chamado, ChamadoRequest } from '@/@types/portal'
 
 export type { Chamado } from '@/@types/portal'
@@ -65,6 +66,7 @@ export const ChamadosService = {
     create: async (
         novoChamado: ChamadoRequest & { solicitanteNome: string; solicitanteId?: number | null },
     ): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             const agora = new Date().toISOString()
@@ -89,6 +91,7 @@ export const ChamadosService = {
     },
 
     updateStatus: async (id: number, novoStatus: string): Promise<void> => {
+        assertPodeEditar()
         if (USE_MOCK) {
             await simulateDelay()
             mockChamados = mockChamados.map((c) =>

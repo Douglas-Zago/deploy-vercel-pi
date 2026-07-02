@@ -13,7 +13,7 @@ import {
     type PublicoAlvo,
     type FiltroPublicoAlvoCabecalho,
 } from '@/constants/publicoAlvo'
-import { isPerfilGestao } from '@/constants/roles.constant'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 
 export type CategoriaInstitucional = 'Provas' | 'Feriados' | 'Eventos'
 
@@ -41,7 +41,7 @@ let MOCK_CALENDARIO: EventoCalendario[] = [
         descricao: 'Sala multimídia Bloco B. Comparecer com documento oficial com foto.',
         data: '2026-06-05',
         categoria: 'Provas',
-        publicoAlvo: '9º Ano A',
+        publicoAlvo: '9º Ano A - Ensino Fundamental',
     },
     {
         id: 2,
@@ -73,7 +73,7 @@ let MOCK_CALENDARIO: EventoCalendario[] = [
         descricao: 'Apenas turma específica; entrega na secretaria até 17h.',
         data: '2026-06-20',
         categoria: 'Provas',
-        publicoAlvo: '3º Ano B',
+        publicoAlvo: '3º Ano B - Ensino Médio',
     },
 ]
 
@@ -161,7 +161,7 @@ function montarGradeMes(ano: number, mes: number): CelulaCalendario[] {
 
 export default function CalendarioInstitucional() {
     const { user } = useAuth()
-    const isGestao = isPerfilGestao(user?.authority)
+    const { isGestao, isGestaoEditavel } = usePodeEditar()
 
     const hoje = useMemo(() => new Date(), [])
     const [mesVisivel, setMesVisivel] = useState(() => ({
@@ -237,6 +237,7 @@ export default function CalendarioInstitucional() {
 
     const publicar = (e: React.FormEvent) => {
         e.preventDefault()
+        if (!isGestaoEditavel) return
         const t = form.titulo.trim()
         const d = form.descricao.trim()
         if (!t || !d) {
@@ -279,7 +280,7 @@ export default function CalendarioInstitucional() {
                                 novidades; demais perfis apenas consultam.
                             </p>
                         </div>
-                        {isGestao && (
+                        {isGestaoEditavel && (
                             <button
                                 type="button"
                                 onClick={() => setModalPub(true)}

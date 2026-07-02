@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/auth'
 import Reveal from '@/components/ui/Reveal'
-import { isPerfilGestao } from '@/constants/roles.constant'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 import { LaboratoriosService, Laboratorio, ReservaLab } from '@/services/LaboratoriosService'
 
 const Laboratorios = () => {
     // --- SEGURANÇA E CONTEXTO ---
     const { user } = useAuth()
-    const isGestao = isPerfilGestao(user?.authority)
+    const { isGestao, isGestaoEditavel, podeEditar } = usePodeEditar()
     const nomeUsuarioLogado = user?.userName || 'Usuário Desconhecido'
 
     // --- ESTADOS BASE ---
@@ -311,12 +311,14 @@ const Laboratorios = () => {
                         </p>
                     </div>
 
+                    {podeEditar && (
                     <button
                         onClick={() => setIsCriandoReserva(true)}
                         className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-5 sm:px-6 md:px-8 rounded-xl transition-transform active:scale-95 shadow-md flex items-center justify-center gap-2 text-sm sm:text-base md:text-lg"
                     >
                         <span>+</span> Solicitar Reserva
                     </button>
+                    )}
                 </div>
             </Reveal>
 
@@ -330,7 +332,7 @@ const Laboratorios = () => {
                             <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
                                 Selecione o Ambiente
                             </h3>
-                            {isGestao && (
+                            {isGestaoEditavel && (
                                 <button
                                     onClick={() => setIsGerenciandoLabs(true)}
                                     className="shrink-0 text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
@@ -463,7 +465,7 @@ const Laboratorios = () => {
                                                     </span>
                                                 </p>
 
-                                                {isGestao && (
+                                                {isGestaoEditavel && (
                                                     <div className="mt-4 sm:mt-5 pt-4 border-t border-gray-200/50 dark:border-gray-700/50 flex flex-col sm:flex-row sm:flex-wrap justify-end gap-2 sm:gap-3">
                                                         {reserva.status === 'pendente' && (
                                                             <button
@@ -614,7 +616,7 @@ const Laboratorios = () => {
                                     </div>
                                 </div>
 
-                                {isGestao && (
+                                {isGestaoEditavel && (
                                     <div className="mt-1 sm:mt-2 bg-red-50 dark:bg-red-900/20 p-4 sm:p-5 rounded-2xl border border-red-200 dark:border-red-800">
                                         <label className="flex items-start sm:items-center gap-3 cursor-pointer">
                                             <input

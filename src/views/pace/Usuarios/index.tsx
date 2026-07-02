@@ -7,11 +7,13 @@ import {
     UsuarioDTO,
     CargoUsuario,
 } from '@/services/UsuariosService'
+import { TURMAS_NOMES } from '@/mock/data/turmasMockData'
+import { usePodeEditar } from '@/utils/hooks/usePodeEditar'
 
 type StatusFiltro = 'TODOS' | 'ATIVOS' | 'INATIVOS'
 
 /** Turmas disponíveis para alunos (cadastro administrativo) */
-const TURMAS_SELECT_OPTIONS = ['9º Ano A', '3º Ano B', 'Turma Única'] as const
+const TURMAS_SELECT_OPTIONS = TURMAS_NOMES
 
 const MAX_NOME_USUARIO = 100
 const MAX_EMAIL_USUARIO = 100
@@ -45,6 +47,7 @@ const montarPayloadUsuario = (fd: UsuarioDTO): UsuarioDTO => ({
 })
 
 export default function GestaoUsuarios() {
+    const { podeEditar } = usePodeEditar()
     const [usuarios, setUsuarios] = useState<Usuario[]>([])
     const [loading, setLoading] = useState(true)
     const [pendingResets, setPendingResets] = useState<PasswordResetRequest[]>(
@@ -85,14 +88,6 @@ export default function GestaoUsuarios() {
         ativo: true,
     })
     const [editingId, setEditingId] = useState<string | null>(null)
-    const [senhaGeradaModal, setSenhaGeradaModal] = useState<{
-        nome: string
-        email: string
-        matricula: string
-        senha: string
-        contexto: 'criacao' | 'reset'
-    } | null>(null)
-    const [copiadoSenha, setCopiadoSenha] = useState(false)
 
     // CSV State
     const [csvFile, setCsvFile] = useState<File | null>(null)
@@ -102,10 +97,12 @@ export default function GestaoUsuarios() {
     // Toast
     const [toast, setToast] = useState<{
         show: boolean
+        title?: string
         msg: string
         type: 'success' | 'error' | 'warning'
     }>({
         show: false,
+        title: '',
         msg: '',
         type: 'success',
     })
@@ -113,9 +110,10 @@ export default function GestaoUsuarios() {
     const showToast = (
         msg: string,
         type: 'success' | 'error' | 'warning' = 'success',
+        title?: string,
     ) => {
-        setToast({ show: true, msg, type })
-        setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 4000)
+        setToast({ show: true, title, msg, type })
+        setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 5000)
     }
 
     const carregarUsuarios = async () => {
@@ -181,17 +179,6 @@ export default function GestaoUsuarios() {
     }, [usuariosFiltrados, validCurrentPage, itemsPerPage])
 
     // --- FUNÇÕES CRUD BÁSICAS ---
-    const copiarSenhaGerada = async () => {
-        if (!senhaGeradaModal) return
-        try {
-            await navigator.clipboard.writeText(senhaGeradaModal.senha)
-            setCopiadoSenha(true)
-            setTimeout(() => setCopiadoSenha(false), 2500)
-        } catch {
-            showToast('Não foi possível copiar. Copie manualmente.', 'error')
-        }
-    }
-
     const abrirModalNovo = () => {
         setEditingId(null)
         setFormData({
@@ -259,15 +246,12 @@ export default function GestaoUsuarios() {
             setIsConfirmSaveOpen(false)
             setIsModalOpen(false)
 
-            if (resultado.senhaGerada) {
-                setSenhaGeradaModal({
-                    nome: resultado.usuario.nome,
-                    email: resultado.usuario.email,
-                    matricula: resultado.usuario.matricula,
-                    senha: resultado.senhaGerada,
-                    contexto: 'criacao',
-                })
-                setCopiadoSenha(false)
+            if (resultado.criado) {
+                showToast(
+                    "Um e-mail de boas-vindas foi enviado. A senha de acesso temporária é 'Pace@' + os 3 primeiros dígitos do CPF.",
+                    'success',
+                    'Usuário cadastrado com sucesso',
+                )
             } else {
                 showToast('Usuário atualizado!')
             }
@@ -305,18 +289,13 @@ export default function GestaoUsuarios() {
         if (!usuarioParaReset) return
         setSaving(true)
         try {
-            const novaSenha = await UsuariosService.resetarSenha(
-                usuarioParaReset.id,
-            )
+            await UsuariosService.resetarSenha(usuarioParaReset.id)
             setIsConfirmResetOpen(false)
-            setSenhaGeradaModal({
-                nome: usuarioParaReset.nome,
-                email: usuarioParaReset.email,
-                matricula: usuarioParaReset.matricula,
-                senha: novaSenha,
-                contexto: 'reset',
-            })
-            setCopiadoSenha(false)
+            showToast(
+                "Um e-mail de notificação foi enviado. A senha do usuário foi redefinida para o padrão ('Pace@' + 3 primeiros dígitos do CPF).",
+                'success',
+                'Senha redefinida',
+            )
             setUsuarioParaReset(null)
         } catch (error) {
             showToast('Erro ao resetar senha.', 'error')
@@ -391,7 +370,7 @@ export default function GestaoUsuarios() {
         const atual = formData.turma?.trim()
         if (
             atual &&
-            !base.includes(atual as (typeof TURMAS_SELECT_OPTIONS)[number])
+            !base.includes(atual)
         ) {
             return [...base, atual]
         }
@@ -434,7 +413,7 @@ export default function GestaoUsuarios() {
             {toast.show && (
                 <div className="fixed top-4 right-3 left-3 sm:left-auto sm:top-6 sm:right-6 z-[70] animate-bounce-in">
                     <div
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-white font-medium text-sm sm:text-base ${
+                        className={`flex flex-col gap-1 px-4 py-3 rounded-xl shadow-lg text-white font-medium text-sm sm:text-base max-w-md ${
                             toast.type === 'success'
                                 ? 'bg-emerald-600'
                                 : toast.type === 'error'
@@ -442,6 +421,9 @@ export default function GestaoUsuarios() {
                                   : 'bg-amber-500'
                         }`}
                     >
+                        {toast.title && (
+                            <span className="font-bold">{toast.title}</span>
+                        )}
                         <span>{toast.msg}</span>
                     </div>
                 </div>
@@ -465,13 +447,14 @@ export default function GestaoUsuarios() {
                                     reset de senha pendentes.
                                 </p>
                                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                                    Verifique as senhas geradas e finalize as
-                                    solicitações depois de entregar ao usuário.
+                                    Finalize as solicitações após o usuário
+                                    receber o e-mail de redefinição.
                                 </p>
                             </div>
                         )}
                     </div>
 
+                    {podeEditar && (
                     <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                         <button
                             onClick={() => setIsCsvModalOpen(true)}
@@ -500,6 +483,7 @@ export default function GestaoUsuarios() {
                             + Novo Usuário
                         </button>
                     </div>
+                    )}
                 </div>
             </Reveal>
 
@@ -568,6 +552,7 @@ export default function GestaoUsuarios() {
                                                         ).toLocaleString()}
                                                     </td>
                                                     <td className="px-3 py-2">
+                                                        {podeEditar && (
                                                         <button
                                                             type="button"
                                                             onClick={() =>
@@ -579,6 +564,7 @@ export default function GestaoUsuarios() {
                                                         >
                                                             Finalizar
                                                         </button>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -734,6 +720,7 @@ export default function GestaoUsuarios() {
                                             </td>
 
                                             <td className="px-6 py-4">
+                                                {podeEditar ? (
                                                 <button
                                                     onClick={() => {
                                                         setUsuarioParaStatus(
@@ -763,9 +750,28 @@ export default function GestaoUsuarios() {
                                                         ? 'Ativo'
                                                         : 'Inativo'}
                                                 </button>
+                                                ) : (
+                                                <span
+                                                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold ${getStatusBadgeClass(
+                                                        usuario.ativo,
+                                                    )}`}
+                                                >
+                                                    <span
+                                                        className={`w-2.5 h-2.5 rounded-full ${
+                                                            usuario.ativo
+                                                                ? 'bg-emerald-500'
+                                                                : 'bg-red-500'
+                                                        }`}
+                                                    ></span>
+                                                    {usuario.ativo
+                                                        ? 'Ativo'
+                                                        : 'Inativo'}
+                                                </span>
+                                                )}
                                             </td>
 
                                             <td className="px-6 py-4">
+                                                {podeEditar ? (
                                                 <div className="flex justify-center gap-2 flex-wrap">
                                                     <button
                                                         onClick={() =>
@@ -810,6 +816,11 @@ export default function GestaoUsuarios() {
                                                             : '✅ Reativar'}
                                                     </button>
                                                 </div>
+                                                ) : (
+                                                <span className="text-xs text-gray-400 dark:text-gray-500">
+                                                    Somente visualização
+                                                </span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
@@ -869,6 +880,7 @@ export default function GestaoUsuarios() {
                                                 </p>
                                             </div>
 
+                                            {podeEditar ? (
                                             <button
                                                 onClick={() => {
                                                     setUsuarioParaStatus(
@@ -891,6 +903,24 @@ export default function GestaoUsuarios() {
                                                     ? 'Ativo'
                                                     : 'Inativo'}
                                             </button>
+                                            ) : (
+                                            <span
+                                                className={`shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold ${getStatusBadgeClass(
+                                                    usuario.ativo,
+                                                )}`}
+                                            >
+                                                <span
+                                                    className={`w-2.5 h-2.5 rounded-full ${
+                                                        usuario.ativo
+                                                            ? 'bg-emerald-500'
+                                                            : 'bg-red-500'
+                                                    }`}
+                                                ></span>
+                                                {usuario.ativo
+                                                    ? 'Ativo'
+                                                    : 'Inativo'}
+                                            </span>
+                                            )}
                                         </div>
 
                                         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -914,6 +944,7 @@ export default function GestaoUsuarios() {
                                             </span>
                                         </div>
 
+                                        {podeEditar && (
                                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                                             <button
                                                 onClick={() =>
@@ -950,6 +981,7 @@ export default function GestaoUsuarios() {
                                                     : '✅ Reativar'}
                                             </button>
                                         </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -1212,10 +1244,11 @@ export default function GestaoUsuarios() {
                                 Resetar senha?
                             </h3>
                             <p className="text-gray-600 dark:text-gray-400 mb-6 font-medium">
-                                Será gerada uma{' '}
-                                <strong>nova senha forte</strong> para{' '}
-                                <strong>{usuarioParaReset.nome}</strong>. Você
-                                poderá copiá-la e entregar ao usuário.
+                                A senha de{' '}
+                                <strong>{usuarioParaReset.nome}</strong> será
+                                redefinida para o padrão (
+                                <strong>Pace@</strong> + 3 primeiros dígitos do
+                                CPF) e um e-mail de notificação será enviado.
                             </p>
                             <div className="flex flex-col-reverse sm:flex-row gap-3 justify-center">
                                 <button
@@ -1420,12 +1453,13 @@ export default function GestaoUsuarios() {
                                         <p className="text-sm text-indigo-800 dark:text-indigo-300 leading-relaxed">
                                             A senha de acesso será{' '}
                                             <strong>
-                                                Pace + 3 primeiros dígitos do
+                                                Pace@ + 3 primeiros dígitos do
                                                 CPF
                                             </strong>{' '}
                                             (ex.: CPF 123.456.789-00 → senha{' '}
-                                            <strong>Pace123</strong>). O usuário
-                                            deverá alterá-la no primeiro acesso.
+                                            <strong>Pace@123</strong>). O
+                                            usuário deverá alterá-la no primeiro
+                                            acesso.
                                         </p>
                                     </div>
                                 )}
@@ -1494,92 +1528,6 @@ export default function GestaoUsuarios() {
                                     </button>
                                 )}
                             </form>
-                        </div>
-                    </Reveal>
-                </div>
-            )}
-
-            {senhaGeradaModal && (
-                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <Reveal
-                        direction="down"
-                        duration={0.3}
-                        className="w-full max-w-lg"
-                    >
-                        <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-emerald-200 dark:border-emerald-800 overflow-hidden">
-                            <div className="px-6 py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
-                                <p className="text-xs uppercase tracking-[0.2em] font-bold text-white/80 mb-1">
-                                    {senhaGeradaModal.contexto === 'criacao'
-                                        ? 'Usuário criado com sucesso'
-                                        : 'Senha redefinida'}
-                                </p>
-                                <h3 className="text-xl font-extrabold leading-tight">
-                                    Senha de acesso — {senhaGeradaModal.nome}
-                                </h3>
-                                <p className="text-sm text-white/90 mt-1">
-                                    E-mail (login):{' '}
-                                    <span className="font-mono font-bold">
-                                        {senhaGeradaModal.email}
-                                    </span>
-                                    {' · '}
-                                    Matrícula:{' '}
-                                    <span className="font-mono font-bold">
-                                        {senhaGeradaModal.matricula}
-                                    </span>
-                                </p>
-                            </div>
-
-                            <div className="p-6 space-y-4">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                    Entregue esta senha ao usuário de forma
-                                    segura. Ela não será exibida novamente após
-                                    fechar este aviso.
-                                </p>
-
-                                <div className="rounded-2xl border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50/80 dark:bg-emerald-950/40 px-4 py-4 text-center">
-                                    <p className="text-[11px] uppercase tracking-wider font-bold text-emerald-700 dark:text-emerald-400 mb-2">
-                                        Senha gerada
-                                    </p>
-                                    <p className="text-2xl sm:text-3xl font-mono font-bold text-gray-900 dark:text-white break-all select-all tracking-wide">
-                                        {senhaGeradaModal.senha}
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={copiarSenhaGerada}
-                                        className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-colors shadow-md flex items-center justify-center gap-2"
-                                    >
-                                        <svg
-                                            className="w-5 h-5"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                            />
-                                        </svg>
-                                        {copiadoSenha
-                                            ? 'Copiado!'
-                                            : 'Copiar Senha'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setSenhaGeradaModal(null)
-                                            setCopiadoSenha(false)
-                                        }}
-                                        className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                                    >
-                                        Fechar
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </Reveal>
                 </div>
